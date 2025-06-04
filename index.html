@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor de Imágenes</title>
+    <style>
+        :root {
+            --primary-color: #007bff; /* Azul primario */
+            --secondary-color: #6c757d; /* Gris secundario */
+            --background-color: #f8f9fa; /* Fondo muy claro */
+            --surface-color: #ffffff; /* Superficie blanca */
+            --border-color: #dee2e6; /* Borde sutil */
+            --text-color: #212529; /* Texto oscuro */
+            --text-muted: #6c757d; /* Texto secundario/atenuado */
+            --hover-background: #e9ecef; /* Fondo al pasar el ratón */
+            --shadow-light: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-medium: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-modal: 0 5px 25px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 30px;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Fuentes de sistema comunes */
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .file-explorer {
+            max-width: 1200px; /* Aumentar ancho máximo */
+            margin: 20px auto;
+            background: var(--surface-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-medium);
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px; /* Aumentar espacio */
+        }
+
+        .header h2 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 28px; /* Tamaño de fuente ligeramente mayor */
+            font-weight: 600;
+        }
+
+        .files-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Ajustar tamaño y cantidad de columnas */
+            gap: 20px; /* Aumentar espacio entre elementos */
+            padding: 0;
+        }
+
+        .file-item {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px; /* Aumentar borde redondeado */
+            padding: 15px; /* Aumentar padding */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: var(--shadow-light);
+            position: relative; /* Para el posible uso de tooltips */
+        }
+
+        .file-item:hover {
+            transform: translateY(-3px); /* Elevación más notoria */
+            box-shadow: var(--shadow-medium);
+            background-color: var(--hover-background);
+        }
+
+        .file-icon, .thumbnail {
+            width: 60px; /* Iconos un poco más grandes */
+            height: 60px; /* Iconos un poco más grandes */
+            object-fit: cover;
+            border-radius: 6px; /* Bordes de imagen/icono */
+            margin-bottom: 10px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08); /* Sombra sutil en iconos/miniaturas */
+        }
+
+        .file-icon {
+            background-color: #ffffff; /* Fondo blanco explícito */
+            padding: 8px; /* Espacio interno */
+        }
+
+        .file-name {
+            color: var(--text-color);
+            font-size: 14px; /* Tamaño de fuente estándar */
+            font-weight: 500; /* Peso de fuente */
+            word-break: break-word; /* Romper palabras largas correctamente */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal; /* Permitir que el nombre se envuelva si es necesario */
+            width: 100%;
+            display: -webkit-box; /* Para limitar líneas en Webkit */
+            -webkit-line-clamp: 2; /* Limitar a 2 líneas */
+            -webkit-box-orient: vertical;
+            line-height: 1.3; /* Espacio entre líneas */
+            margin-bottom: 4px;
+        }
+
+        .file-type {
+            font-size: 11px; /* Tamaño de fuente más pequeño */
+            color: var(--text-muted);
+            margin-top: 0;
+            font-weight: 400;
+        }
+
+        .modal {
+            display: flex; /* Usar flexbox para centrar */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            visibility: hidden; /* Ocultar inicialmente con visibility */
+            opacity: 0; /* Para transición de opacidad */
+            transition: opacity 0.3s ease-in-out; /* Transición suave */
+        }
+        
+        .modal.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            /* display: block; <-- Eliminado para permitir centrado con flex */
+            border-radius: 8px;
+            box-shadow: var(--shadow-modal);
+             /* Asegurarse de que la imagen se centre si es más pequeña que el contenedor */
+            margin: auto; 
+        }
+
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 40px;
+            cursor: pointer;
+            z-index: 1001;
+            text-shadow: 0 0 8px rgba(0,0,0,0.7);
+            transition: color 0.2s ease-in-out;
+        }
+
+        .close-button:hover {
+            color: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="file-explorer">
+        <div class="header">
+            <h2>Visor de Imágenes</h2>
+        </div>
+        <div class="files-container" id="filesContainer">
+            <!-- Los archivos disponibles se cargarán dinámicamente aquí -->
+        </div>
+    </div>
+    <a href="Vista.html" class="view-txt-button">Ver Archivos TXT</a>
+
+    <div id="imageModal" class="modal" onclick="closeModal(event)">
+        <span class="close-button">&times;</span>
+        <img class="modal-content" id="fullImage">
+    </div>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html> 

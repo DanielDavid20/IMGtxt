@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archivos Obtenidos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('fondo/fondo.avif');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #212529;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #000000c1;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #ff0000;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        #filesList {
+            list-style: none;
+            padding: 0;
+        }
+        .file-item {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 15px;
+            word-break: break-word;
+        }
+        .file-item strong {
+            color: #0056b3;
+        }
+         .file-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+         }
+         .file-info span {
+             font-size: 0.9em;
+             color: #6c757d;
+         }
+        .file-item pre {
+            background-color: #e2e6ea;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .download-link, .delete-button {
+            display: inline-block;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+             font-size: 0.9em;
+             font-weight: 600;
+        }
+        .download-link {
+            background-color: #28a745;
+            color: white;
+        }
+        .download-link:hover {
+            background-color: #218838;
+        }
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+        .empty-state {
+            color: #6c757d;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+         .header-controls {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             border-bottom: 1px solid #dee2e6;
+             padding-bottom: 15px;
+             margin-bottom: 20px;
+         }
+        .refresh-button {
+            padding: 8px 15px;
+            background-color: #007bff; /* Azul */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            font-size: 1em;
+        }
+        .refresh-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-controls">
+             <h1>Archivos Obtenidos</h1>
+             <button id="refreshButton" class="refresh-button">Refrescar</button>
+        </div>
+        <ul id="filesList">
+            <!-- Los archivos .txt se cargarán aquí -->
+        </ul>
+        <div id="loading" class="empty-state">Cargando archivos...</div>
+        <div id="empty" class="empty-state" style="display: none;">No hay archivos .txt subidos aún.</div>
+         <div id="error" class="empty-state" style="display: none; color: red;">Error al cargar los archivos.</div>
+    </div>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="viewer.js"></script>
+</body>
+</html> 
