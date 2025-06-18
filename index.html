@@ -3,124 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor de Imágenes</title>
+    <title>Chat de Imágenes</title>
     <style>
         :root {
-            --primary-color: #007bff; /* Azul primario */
-            --secondary-color: #6c757d; /* Gris secundario */
-            --background-color: #f8f9fa; /* Fondo muy claro */
-            --surface-color: #ffffff; /* Superficie blanca */
-            --border-color: #dee2e6; /* Borde sutil */
-            --text-color: #212529; /* Texto oscuro */
-            --text-muted: #6c757d; /* Texto secundario/atenuado */
-            --hover-background: #e9ecef; /* Fondo al pasar el ratón */
+            --primary-color: #25D366;
+            --secondary-color: #128C7E;
+            --background-color: #ECE5DD;
+            --surface-color: #ffffff;
+            --border-color: #e0e0e0;
+            --text-color: #303030;
+            --text-muted: #667781;
+            --hover-background: #f0f0f0;
             --shadow-light: 0 1px 3px rgba(0,0,0,0.05);
             --shadow-medium: 0 4px 12px rgba(0,0,0,0.1);
             --shadow-modal: 0 5px 25px rgba(0,0,0,0.3);
+            --sidebar-width: 300px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             background-color: var(--background-color);
             margin: 0;
-            padding: 30px;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Fuentes de sistema comunes */
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             color: var(--text-color);
             line-height: 1.5;
+            height: 100vh;
+            display: flex;
         }
 
-        .file-explorer {
-            max-width: 1200px; /* Aumentar ancho máximo */
-            margin: 20px auto;
-            background: var(--surface-color);
-            border-radius: 8px;
-            box-shadow: var(--shadow-medium);
-            padding: 30px;
-            box-sizing: border-box;
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
-        .header {
+        .sidebar-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
             display: flex;
             align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 30px; /* Aumentar espacio */
+            gap: 15px;
         }
 
-        .header h2 {
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--background-color);
+        }
+
+        .chat-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .chat-header h2 {
             margin: 0;
-            color: var(--text-color);
-            font-size: 28px; /* Tamaño de fuente ligeramente mayor */
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 500;
         }
 
-        .files-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Ajustar tamaño y cantidad de columnas */
-            gap: 20px; /* Aumentar espacio entre elementos */
-            padding: 0;
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        .file-item {
-            background: var(--surface-color);
+        .chat-input-container {
+            background-color: var(--surface-color);
+            padding: 15px 30px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background-color: var(--background-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px; /* Aumentar borde redondeado */
-            padding: 15px; /* Aumentar padding */
+            border-radius: 24px;
+            padding: 12px 20px;
+            font-size: 15px;
+            color: var(--text-color);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
+            transition: transform 0.2s ease;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 15px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: var(--shadow-light);
+        }
+
+        .message.received {
+            align-self: flex-start;
+            background-color: white;
+            margin-right: auto;
+            border-top-left-radius: 4px;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            background-color: #DCF8C6;
+            margin-left: auto;
+            border-top-right-radius: 4px;
+        }
+
+        .message-image {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            box-shadow: var(--shadow-light);
+        }
+
+        .message-image:hover {
+            transform: scale(1.02);
+        }
+
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .loading-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            box-shadow: var(--shadow-light);
-            position: relative; /* Para el posible uso de tooltips */
+            justify-content: center;
+            gap: 10px;
+            border-radius: 8px;
+            z-index: 1;
         }
 
-        .file-item:hover {
-            transform: translateY(-3px); /* Elevación más notoria */
-            box-shadow: var(--shadow-medium);
-            background-color: var(--hover-background);
+        .progress-container {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
         }
 
-        .file-icon, .thumbnail {
-            width: 60px; /* Iconos un poco más grandes */
-            height: 60px; /* Iconos un poco más grandes */
-            object-fit: cover;
-            border-radius: 6px; /* Bordes de imagen/icono */
-            margin-bottom: 10px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08); /* Sombra sutil en iconos/miniaturas */
-        }
-
-        .file-icon {
-            background-color: #ffffff; /* Fondo blanco explícito */
-            padding: 8px; /* Espacio interno */
-        }
-
-        .file-name {
-            color: var(--text-color);
-            font-size: 14px; /* Tamaño de fuente estándar */
-            font-weight: 500; /* Peso de fuente */
-            word-break: break-word; /* Romper palabras largas correctamente */
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: normal; /* Permitir que el nombre se envuelva si es necesario */
+        .progress-bar {
             width: 100%;
-            display: -webkit-box; /* Para limitar líneas en Webkit */
-            -webkit-line-clamp: 2; /* Limitar a 2 líneas */
-            -webkit-box-orient: vertical;
-            line-height: 1.3; /* Espacio entre líneas */
-            margin-bottom: 4px;
+            height: 6px;
+            background-color: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
         }
 
-        .file-type {
-            font-size: 11px; /* Tamaño de fuente más pequeño */
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.2s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
             color: var(--text-muted);
-            margin-top: 0;
-            font-weight: 400;
+            font-weight: 500;
+        }
+
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .success-message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(37, 211, 102, 0.9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            z-index: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .success-message span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            text-align: right;
         }
 
         .modal {
-            display: flex; /* Usar flexbox para centrar */
+            display: flex;
             position: fixed;
             top: 0;
             left: 0;
@@ -131,9 +296,9 @@
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(5px);
-            visibility: hidden; /* Ocultar inicialmente con visibility */
-            opacity: 0; /* Para transición de opacidad */
-            transition: opacity 0.3s ease-in-out; /* Transición suave */
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
         }
         
         .modal.visible {
@@ -144,11 +309,9 @@
         .modal-content {
             max-width: 90%;
             max-height: 90%;
-            /* display: block; <-- Eliminado para permitir centrado con flex */
             border-radius: 8px;
             box-shadow: var(--shadow-modal);
-             /* Asegurarse de que la imagen se centre si es más pequeña que el contenedor */
-            margin: auto; 
+            margin: auto;
         }
 
         .close-button {
@@ -166,18 +329,110 @@
         .close-button:hover {
             color: var(--border-color);
         }
+
+        .view-txt-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            text-decoration: none;
+            box-shadow: var(--shadow-medium);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .view-txt-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-modal);
+        }
+
+        .info-panel {
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .info-panel h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-panel p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .basic-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .basic-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .message {
+                max-width: 80%;
+            }
+
+            .message-image {
+                width: 200px;
+                height: 200px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="file-explorer">
-        <div class="header">
-            <h2>Visor de Imágenes</h2>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chat de Imágenes</h2>
         </div>
-        <div class="files-container" id="filesContainer">
-            <!-- Los archivos disponibles se cargarán dinámicamente aquí -->
+        <div class="sidebar-content">
+            <div class="info-panel">
+                <h3>Información</h3>
+                <p>Este chat muestra las imágenes disponibles en el sistema. Haz clic en cualquier imagen para verla en tamaño completo.</p>
+            </div>
+            <div class="info-panel">
+                <h3>Características</h3>
+                <p>• Visualización de imágenes en formato chat<br>
+                   • Vista previa de imágenes<br>
+                   • Interfaz similar a WhatsApp<br>
+                   • Diseño responsivo</p>
+                <a href="Vista.html" class="basic-link">Ver Archivos TXT</a>
+            </div>
         </div>
     </div>
-    <a href="Vista.html" class="view-txt-button">Ver Archivos TXT</a>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Conversación</h2>
+        </div>
+        <div class="chat-messages" id="filesContainer">
+            <!-- Los mensajes con imágenes se cargarán dinámicamente aquí -->
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" placeholder="Escribe un mensaje..." readonly>
+            <button class="send-button" disabled>
+                <svg viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 
     <div id="imageModal" class="modal" onclick="closeModal(event)">
         <span class="close-button">&times;</span>
